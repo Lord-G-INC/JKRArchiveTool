@@ -10,5 +10,8 @@ endif
 
 all: $(TARGET)
 
-$(TARGET):
-	g++ -s -Os -I $(Include_Dir) $(CPPFILES) -o $(TARGET)
+$(TARGET): $(CPPFILES)
+	g++ -s -Os -I $(Include_Dir) $^ -o $(TARGET)
+
+clean:
+	rm JKRArchiveTools*
