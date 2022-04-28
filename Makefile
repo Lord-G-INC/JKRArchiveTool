@@ -14,4 +14,4 @@ $(TARGET): $(CPPFILES)
 	g++ -s -Os -I $(Include_Dir) $^ -o $(TARGET)
 
 clean:
-	rm JKRArchiveTools*
+	rm $(TARGET)
