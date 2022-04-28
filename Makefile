@@ -1,4 +1,14 @@
 Include_Dir := Include
 
-all: 
-	g++ Source/*.cpp -s -Os -I $(Include_Dir) -o JKRArchiveTools.exe 
+CPPFILES := $(foreach dir,Source,$(wildcard $(dir)/*.cpp))
+
+ifeq ($(OS),Windows_NT)
+	TARGET := JKRArchiveTools.exe
+else
+	TARGET := JKRArchiveTools
+endif
+
+all: $(TARGET)
+
+$(TARGET):
+	g++ -s -Os -I $(Include_Dir) $(CPPFILES) -o $(TARGET)
