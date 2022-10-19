@@ -42,19 +42,19 @@ void JKRArchive::importFromFolder(const std::string &filePath, JKRFileAttr attr)
 }
 
 void JKRArchive::importNode(const std::string &filepath, JKRFolderNode*pParentNode, JKRFileAttr attr) {
-    DIR* dir = opendir(filepath.c_str());
-    dirent* ent;
-
-    while ((ent = readdir(dir))) {
-        if (!strcmp(ent->d_name, "..") || !strcmp(ent->d_name, "."))
-            continue;        
-        if (ent->d_type == DT_DIR) {
-            JKRFolderNode* node = createFolder(ent->d_name, pParentNode);
-            importNode(filepath + "\\" + ent->d_name, node, attr);
-        }
-        else if (ent->d_type == DT_REG) {       
-            JKRDirectory* file = createFile(ent->d_name, pParentNode, attr);
-            file->mData = File::readAllBytes(filepath + "/" + ent->d_name, &file->mNode.mDataSize);
+    ghc::filesystem::directory_iterator iter(filepath);
+    for (const auto& entry : iter) {
+        const auto& path = entry.path();
+        auto name = path.filename().string();
+        if (name == "." || name == "..")
+            continue;
+        if (ghc::filesystem::is_directory(path)) {
+            JKRFolderNode* node = createFolder(name, pParentNode);
+            std::string np = (path / name).string();
+            importNode(np, node, attr);
+        } else if (ghc::filesystem::is_regular_file(path)) {
+            JKRDirectory* node = createFile(name, pParentNode, attr);
+            node->mData = File::readAllBytes(path.string(), &node->mNode.mDataSize);
         }
     }
 }
@@ -323,7 +323,7 @@ bool JKRArchive::validateName(JKRFolderNode*pNode, const std::string &fileName) 
     //     }
     // }
 
-    // return true;
+    return true;
 }
 
 void JKRArchive::collectStrings(JKRFolderNode*pNode, StringPool*pPool, bool reduceStrings) {
@@ -362,7 +362,7 @@ void JKRFolderNode::unpack(const std::string &filePath) {
         fullpath = filePath + "/" + mChildDirs[i]->mName;
 
         if (mChildDirs[i]->isDirectory()) {      
-            ghc::filesystem::create_directories(fullpath.c_str());
+            ghc::filesystem::create_directories(fullpath);
             mChildDirs[i]->mFolderNode->unpack(fullpath);
         }
         else if (mChildDirs[i]->isFile()) {

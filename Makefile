@@ -1,6 +1,6 @@
 Include_Dir := Include
 
-CPPFILES := $(foreach dir,Source,$(wildcard $(dir)/*.cpp))
+CPPFILES := Source\Main.cpp
 
 ifeq ($(OS),Windows_NT)
 	TARGET := JKRArchiveTools.exe
