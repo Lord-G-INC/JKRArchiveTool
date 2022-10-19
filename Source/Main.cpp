@@ -1,9 +1,12 @@
 #include <strings.h>
-#include "JKRCompression.h"
-#include "JKRArchive.h"
-#include "Util.h"
+#include "BinaryReaderAndWriter.cpp"
+#include "JKRArchive.cpp"
+#include "JKRCompression.cpp"
+#include "Util.cpp"
+#include "filesystem.hpp"
 
-int main(int argc, char*argv[]) {  
+
+int main(int argc, char* argv[]) {  
     u32 bufferSize;
     bool fastComp = false;
 
@@ -44,12 +47,7 @@ int main(int argc, char*argv[]) {
                 archive = new JKRArchive(filePath);       
             else 
                 archive = new JKRArchive(pData, bufferSize);
-            
-            std::string path = filePath;
-            u32 lastSlashIdx = path.rfind('\\');
-            std::string dir = path.substr(0, lastSlashIdx);
-            dir = dir.substr(0, dir.rfind("."));
-            archive->unpack(dir);
+            archive->unpack(ghc::filesystem::current_path().string());
             delete archive;
             delete pData;
         }
