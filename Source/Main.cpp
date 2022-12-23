@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
                 }
             }
 
-            if (attr = JKRFileAttr_FILE)
+            if (attr == JKRFileAttr_FILE)
                 attr = (JKRFileAttr)(attr | JKRFileAttr_LOAD_TO_MRAM);
 
             JKRArchive* archive = new JKRArchive();

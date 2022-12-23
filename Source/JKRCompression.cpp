@@ -189,7 +189,7 @@ namespace JKRCompression {
     const u8* encodeSZS(u8* src, u32 srcSize, u32 *outSize) {
         BinaryWriter writer(src, srcSize, EndianSelect::Little);
         writer.writeString("Yaz0");
-        return writer.getBuffer();
+        //return writer.getBuffer();
         writer.write<u32>(srcSize);
         writer.writePadding(0x0, 8);
         u8 dst[24];

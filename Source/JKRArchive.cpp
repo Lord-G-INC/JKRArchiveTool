@@ -1,6 +1,4 @@
 #include "JKRArchive.h"
-#include <direct.h>
-#include <dirent.h>
 #include "Util.h"
 #include "filesystem.hpp"
 

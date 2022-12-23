@@ -11,7 +11,7 @@ endif
 all: $(TARGET)
 
 $(TARGET): $(CPPFILES)
-	g++ -s -Os -I $(Include_Dir) $^ -o $(TARGET)
+	g++ -s -Os -I $(Include_Dir) $^ -o $(TARGET) -static-libstdc++
 
 clean:
 	rm $(TARGET)
