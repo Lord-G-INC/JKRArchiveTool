@@ -1,4 +1,3 @@
-#include <strings.h>
 #include "BinaryReaderAndWriter.cpp"
 #include "JKRArchive.cpp"
 #include "JKRCompression.cpp"

@@ -1,7 +1,6 @@
 #include "BinaryReaderAndWriter.h"
 #include "JKRCompression.h"
 #include <vector>
-#include <strings.h>
 
 // Heavily based off https://github.com/SunakazeKun/pygapa/blob/main/jsystem/jkrarchive.py
 

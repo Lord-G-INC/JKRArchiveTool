@@ -8,6 +8,15 @@
 #include <vector>
 #include <iostream>
 
+// MSVC/Clang checks
+#ifdef __GNUC__
+#include <strings.h>
+#elif _MSC_VER
+#include <string.h>
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 namespace File {
     void writeAllBytes(const std::string &, const u8*, u32);
     u8* readAllBytes(const std::string &, u32*);
