@@ -58,7 +58,11 @@ namespace JKRCompression {
 
         switch (CompType) {
             case JKRCompressionType_SZS:
-                    dst = encodeSZSFast(src, srcSize, &dstSize);
+                    if (fast) {
+                        dst = encodeSZSFast(src, srcSize, &dstSize);
+                    } else {
+                        dst = encodeSZS(src, srcSize, &dstSize);
+                    }
                     break;
             case JKRCompressionType_SZP: 
                 if (fast)
