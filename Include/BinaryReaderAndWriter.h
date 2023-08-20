@@ -132,6 +132,9 @@ public:
     void seek(u32, std::ios::seekdir);
     u32 position();
     u32 size();
+    constexpr auto getStream() const {
+        return mStream;
+    }
 
     EndianSelect mEndian;
 private:
@@ -166,6 +169,10 @@ public:
     void align32();
 
     const u8* getBuffer();
+
+    constexpr auto getStream() const {
+        return mStream;
+    }
 
     EndianSelect mEndian;
 private:
