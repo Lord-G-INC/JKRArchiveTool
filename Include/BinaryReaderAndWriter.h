@@ -100,6 +100,7 @@ public:
     BinaryReader(const std::string &, EndianSelect);
     BinaryReader(const u8 *, u32, EndianSelect);
     BinaryReader() {}
+    BinaryReader(std::istream* stream) : mStream(stream) {}
 
     ~BinaryReader();
 
@@ -132,9 +133,6 @@ public:
     void seek(u32, std::ios::seekdir);
     u32 position();
     u32 size();
-    constexpr auto getStream() const {
-        return mStream;
-    }
 
     EndianSelect mEndian;
 private:
@@ -147,6 +145,7 @@ public:
     BinaryWriter(const std::string &, EndianSelect);
     BinaryWriter(const u8*, u32, EndianSelect);
     BinaryWriter() {}
+    BinaryWriter(std::ostream* stream) : mStream(stream) {}
 
     ~BinaryWriter();
 
@@ -169,10 +168,6 @@ public:
     void align32();
 
     const u8* getBuffer();
-
-    constexpr auto getStream() const {
-        return mStream;
-    }
 
     EndianSelect mEndian;
 private:
