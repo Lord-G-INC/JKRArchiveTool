@@ -99,6 +99,7 @@ class BinaryReader {
 public:
     BinaryReader(const std::string &, EndianSelect);
     BinaryReader(const u8 *, u32, EndianSelect);
+    BinaryReader() {}
 
     ~BinaryReader();
 
@@ -142,6 +143,7 @@ class BinaryWriter {
 public:
     BinaryWriter(const std::string &, EndianSelect);
     BinaryWriter(const u8*, u32, EndianSelect);
+    BinaryWriter() {}
 
     ~BinaryWriter();
 
