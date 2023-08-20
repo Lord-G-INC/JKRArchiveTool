@@ -94,7 +94,7 @@ JKRFolderNode* JKRArchive::createFolder(const std::string &folderName, JKRFolder
 
 void JKRArchive::read(BinaryReader &reader) {
     auto magic = reader.readString(0x4);
-    if (magic != "RARC" | magic != "CRAR") {
+    if (magic != "RARC" && magic != "CRAR") {
         printf("Fatal error! File is not a valid JKRArchive");
         return;
     }
@@ -226,7 +226,7 @@ void JKRArchive::write(BinaryWriter &writer, bool reduceStrings) {
     u32 fileSize = writer.size();
     writer.seek(0x0, std::ios::beg);
 
-    writer.writeString("RARC");
+    writer.writeString(writer.mEndian == EndianSelect::Big ? "RARC" : "CRAR");
     writer.write<u32>(fileSize);
     writer.write<u32>(0x20);
     writer.write<u32>(fileDataOffs);
