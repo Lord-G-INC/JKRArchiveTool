@@ -1,3 +1,4 @@
+#pragma once
 #include "BinaryReaderAndWriter.h"
 #include "JKRCompression.h"
 #include <vector>
