@@ -2,7 +2,7 @@
 #include "JKRArchive.cpp"
 #include "JKRCompression.cpp"
 #include "Util.cpp"
-#include "filesystem.hpp"
+#include "..\Include\filesystem.hpp"
 
 
 int main(int argc, char* argv[]) {  

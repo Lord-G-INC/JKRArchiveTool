@@ -1,5 +1,5 @@
-#include "Util.h"
-#include "BinaryReaderAndWriter.h"
+#include "..\Include\Util.h"
+#include "..\Include\BinaryReaderAndWriter.h"
 
 namespace File {
     void writeAllBytes(const std::string &filePath, const u8 *pBytes, u32 bufferSize) {

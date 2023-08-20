@@ -1,5 +1,5 @@
-#include "JKRCompression.h"
-#include "Util.h"
+#include "..\Include\JKRCompression.h"
+#include "..\Include\Util.h"
 #include <iostream>
 
 namespace JKRCompression {

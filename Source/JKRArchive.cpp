@@ -1,6 +1,6 @@
-#include "JKRArchive.h"
-#include "Util.h"
-#include "filesystem.hpp"
+#include "..\Include\JKRArchive.h"
+#include "..\Include\Util.h"
+#include "..\Include\filesystem.hpp"
 
 JKRArchive::JKRArchive(const std::string &filePath) {
     BinaryReader reader(filePath, EndianSelect::Big);

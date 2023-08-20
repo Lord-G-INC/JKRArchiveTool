@@ -1,4 +1,4 @@
-#include "BinaryReaderAndWriter.h"
+#include "..\Include\BinaryReaderAndWriter.h"
 #include <stdlib.h>
 #include <vector>
 
