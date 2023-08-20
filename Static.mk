@@ -1,4 +1,4 @@
-CPPFILES := Source\BinaryReaderAndWriter.cpp Source\JKRArchive.cpp Source\Util.cpp
+CPPFILES := Source\BinaryReaderAndWriter.cpp Source\JKRArchive.cpp Source\Util.cpp Source\JKRCompression.cpp
 
 TARGET := JKRArchiveTool.a
 

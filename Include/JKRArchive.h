@@ -116,9 +116,9 @@ public:
     std::vector<JKRDirectory*> mDirectories;
     JKRFolderNode* mRoot = nullptr;
 
-private:
     void read(BinaryReader &);
     void write(BinaryWriter &, bool);
+private:
     void writeFileData(BinaryWriter &, std::vector<JKRDirectory*>, u32 *);
 
     void sortNodesAndDirs();
