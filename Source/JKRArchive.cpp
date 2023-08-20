@@ -93,7 +93,8 @@ JKRFolderNode* JKRArchive::createFolder(const std::string &folderName, JKRFolder
 }
 
 void JKRArchive::read(BinaryReader &reader) {
-    if (reader.readString(0x4) != "RARC") {
+    auto magic = reader.readString(0x4);
+    if (magic != "RARC" | magic != "CRAR") {
         printf("Fatal error! File is not a valid JKRArchive");
         return;
     }

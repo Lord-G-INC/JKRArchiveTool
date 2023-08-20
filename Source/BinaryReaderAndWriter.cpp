@@ -29,9 +29,6 @@ std::string BinaryReader::readString(const u32 &rLength) {
         output.push_back(charBuffer);
     }
 
-    if (mEndian == EndianSelect::Big)
-        std::reverse(output.end(), output.begin());
-
     return output;
 }
 
@@ -42,9 +39,6 @@ std::string BinaryReader::readNullTerminatedString() {
         mStream->read((char*)&buffer, 1);
         output.push_back(buffer);
     }
-
-    if (mEndian == EndianSelect::Big)
-        std::reverse(output.end(), output.begin());
         
     skip(1);
     return output;
