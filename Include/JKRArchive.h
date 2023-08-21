@@ -2,6 +2,7 @@
 #include "BinaryReaderAndWriter.h"
 #include "JKRCompression.h"
 #include <vector>
+#include <memory>
 
 // Heavily based off https://github.com/SunakazeKun/pygapa/blob/main/jsystem/jkrarchive.py
 
@@ -65,8 +66,8 @@ public:
     Node mNode;
     bool mIsRoot = false; 
     std::string mName;
-    JKRDirectory* mDirectory;
-    std::vector<JKRDirectory*> mChildDirs;
+    std::shared_ptr<JKRDirectory> mDirectory;
+    std::vector<std::shared_ptr<JKRDirectory>> mChildDirs;
 };
 
 class JKRDirectory {
@@ -93,11 +94,11 @@ public:
 
     JKRFileAttr mAttr;
     Node mNode;
-    JKRFolderNode* mFolderNode;
-    JKRFolderNode* mParentNode;
+    std::shared_ptr<JKRFolderNode> mFolderNode;
+    std::shared_ptr<JKRFolderNode> mParentNode;
     std::string mName;
     u16 mNameOffs;
-    u8* mData;
+    std::shared_ptr<u8[]> mData;
 };
 
 class JKRArchive {
@@ -109,24 +110,24 @@ public:
     void unpack(const std::string &);
     void save(const std::string &, bool);
     void importFromFolder(const std::string &, JKRFileAttr);
-    JKRDirectory* createDir(const std::string &, JKRFileAttr, JKRFolderNode*, JKRFolderNode*);
-    JKRDirectory* createFile(const std::string &, JKRFolderNode*, JKRFileAttr);
-    JKRFolderNode* createFolder(const std::string &, JKRFolderNode*);
+    std::shared_ptr<JKRDirectory> createDir(const std::string &, JKRFileAttr, std::shared_ptr<JKRFolderNode>, std::shared_ptr<JKRFolderNode>);
+    std::shared_ptr<JKRDirectory> createFile(const std::string &, std::shared_ptr<JKRFolderNode>, JKRFileAttr);
+    std::shared_ptr<JKRFolderNode> createFolder(const std::string &, std::shared_ptr<JKRFolderNode>);
 
-    std::vector<JKRFolderNode*> mFolderNodes;
-    std::vector<JKRDirectory*> mDirectories;
-    JKRFolderNode* mRoot = nullptr;
+    std::vector<std::shared_ptr<JKRFolderNode>> mFolderNodes;
+    std::vector<std::shared_ptr<JKRDirectory>> mDirectories;
+    std::shared_ptr<JKRFolderNode> mRoot = nullptr;
 
     void read(BinaryReader &);
     void write(BinaryWriter &, bool);
 private:
-    void writeFileData(BinaryWriter &, std::vector<JKRDirectory*>, u32 *);
+    void writeFileData(BinaryWriter &, std::vector<std::shared_ptr<JKRDirectory>>, u32 *);
 
     void sortNodesAndDirs();
-    void sortNodeAndDirs(JKRFolderNode*);
-    bool validateName(JKRFolderNode*, const std::string &);
+    void sortNodeAndDirs(std::shared_ptr<JKRFolderNode>);
+    bool validateName(std::shared_ptr<JKRFolderNode>, const std::string &);
 
-    void collectStrings(JKRFolderNode*, StringPool*, bool);
+    void collectStrings(std::shared_ptr<JKRFolderNode>, StringPool*, bool);
 
     s32 align32(s32 val) {
         return (val + 0x1F) & ~0x1F;
@@ -134,14 +135,14 @@ private:
 
     u16 nameHash(const std::string &);
 
-    void importNode(const std::string &, JKRFolderNode*, JKRFileAttr);
+    void importNode(const std::string &, std::shared_ptr<JKRFolderNode>, JKRFileAttr);
 
     JKRArchiveHeader mHeader;
     JKRArchiveDataHeader mDataHeader;
 
-    std::vector<JKRDirectory*> mMRAMFiles;
-    std::vector<JKRDirectory*> mARAMFiles;
-    std::vector<JKRDirectory*> mDVDFiles;
+    std::vector<std::shared_ptr<JKRDirectory>> mMRAMFiles;
+    std::vector<std::shared_ptr<JKRDirectory>> mARAMFiles;
+    std::vector<std::shared_ptr<JKRDirectory>> mDVDFiles;
     bool mSyncFileIds = true;
     u16 mNextFileIdx = 0;
 };

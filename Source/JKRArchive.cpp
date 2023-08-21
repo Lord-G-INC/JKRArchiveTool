@@ -28,7 +28,7 @@ void JKRArchive::importFromFolder(const std::string &filePath, JKRFileAttr attr)
     if (!mRoot) {
         u32 lastSlashIdx = filePath.rfind('\\');
         std::string name = filePath.substr(lastSlashIdx + 1);
-        mRoot = new JKRFolderNode();
+        mRoot = std::make_shared<JKRFolderNode>();
         mRoot->mIsRoot = true;
         mRoot->mName = name;
         mFolderNodes.push_back(mRoot);
@@ -39,7 +39,7 @@ void JKRArchive::importFromFolder(const std::string &filePath, JKRFileAttr attr)
     importNode(filePath, mRoot, attr);
 }
 
-void JKRArchive::importNode(const std::string &filepath, JKRFolderNode*pParentNode, JKRFileAttr attr) {
+void JKRArchive::importNode(const std::string &filepath, std::shared_ptr<JKRFolderNode> pParentNode, JKRFileAttr attr) {
     ghc::filesystem::directory_iterator iter(filepath);
     for (const auto& entry : iter) {
         const auto& path = entry.path();
@@ -47,18 +47,21 @@ void JKRArchive::importNode(const std::string &filepath, JKRFolderNode*pParentNo
         if (name == "." || name == "..")
             continue;
         if (ghc::filesystem::is_directory(path)) {
-            JKRFolderNode* node = createFolder(name, pParentNode);
+            std::shared_ptr<JKRFolderNode> node = createFolder(name, pParentNode);
             std::string np = (path / name).string();
             importNode(np, node, attr);
         } else if (ghc::filesystem::is_regular_file(path)) {
-            JKRDirectory* node = createFile(name, pParentNode, attr);
-            node->mData = File::readAllBytes(path.string(), &node->mNode.mDataSize);
+            auto node = createFile(name, pParentNode, attr);
+            u8* ptr = File::readAllBytes(path.string(), &node->mNode.mDataSize);
+            node->mData = std::shared_ptr<u8[]>(new u8[node->mNode.mDataSize]);
+            memcpy(node->mData.get(), ptr, node->mNode.mDataSize);
+            delete [] ptr;
         }
     }
 }
 
-JKRDirectory* JKRArchive::createDir(const std::string &dirName, JKRFileAttr attr, JKRFolderNode *pNode, JKRFolderNode *pParentNode) {
-    JKRDirectory* newDir = new JKRDirectory();
+std::shared_ptr<JKRDirectory> JKRArchive::createDir(const std::string &dirName, JKRFileAttr attr, std::shared_ptr<JKRFolderNode> pNode, std::shared_ptr<JKRFolderNode> pParentNode) {
+    auto newDir = std::make_shared<JKRDirectory>();
     newDir->mName = dirName;
     newDir->mAttr = attr;
     newDir->mFolderNode = pNode;
@@ -68,9 +71,9 @@ JKRDirectory* JKRArchive::createDir(const std::string &dirName, JKRFileAttr attr
     return newDir;
 }
 
-JKRDirectory* JKRArchive::createFile(const std::string &fileName, JKRFolderNode*pParentNode, JKRFileAttr attr) {
+std::shared_ptr<JKRDirectory> JKRArchive::createFile(const std::string &fileName, std::shared_ptr<JKRFolderNode> pParentNode, JKRFileAttr attr) {
     validateName(pParentNode, fileName);
-    JKRDirectory* newFile = createDir(fileName, attr, nullptr, pParentNode);
+    auto newFile = createDir(fileName, attr, nullptr, pParentNode);
     
     if (!mSyncFileIds) {
         newFile->mNode.mNodeIdx = mNextFileIdx;
@@ -80,9 +83,9 @@ JKRDirectory* JKRArchive::createFile(const std::string &fileName, JKRFolderNode*
     return newFile;
 }
 
-JKRFolderNode* JKRArchive::createFolder(const std::string &folderName, JKRFolderNode*pParentNode) {
+std::shared_ptr<JKRFolderNode> JKRArchive::createFolder(const std::string &folderName, std::shared_ptr<JKRFolderNode>pParentNode) {
     validateName(pParentNode, folderName);
-    JKRFolderNode* newFolder = new JKRFolderNode();
+    std::shared_ptr<JKRFolderNode> newFolder = std::make_shared<JKRFolderNode>();
     newFolder->mName = folderName;
     mFolderNodes.push_back(newFolder);
 
@@ -111,7 +114,7 @@ void JKRArchive::read(BinaryReader &reader) {
     for (s32 i = 0; i < mDataHeader.mDirNodeCount; i++) {
         // This kinda isn't true but ¯\_(ツ)_/¯
         printf("\rUnpacking Folder %u / %u", i + 1, mDataHeader.mDirNodeCount);
-        JKRFolderNode* Node = new JKRFolderNode();
+        std::shared_ptr<JKRFolderNode> Node = std::make_shared<JKRFolderNode>();
         Node->mNode = *reinterpret_cast<const JKRFolderNode::Node*>(reader.readBytes(sizeof(JKRFolderNode::Node)));
         Node->mName = reader.readNullTerminatedStringAt(mDataHeader.mStringTableOffset + mHeader.mHeaderSize + Node->mNode.mNameOffs);   
 
@@ -127,7 +130,7 @@ void JKRArchive::read(BinaryReader &reader) {
     reader.seek(mDataHeader.mFileNodeOffset + mHeader.mHeaderSize, std::ios::beg);
 
     for (s32 i = 0; i < mDataHeader.mFileNodeCount; i++) {
-        JKRDirectory* dir = new JKRDirectory();
+        auto dir = std::make_shared<JKRDirectory>();
         dir->mNode = *reinterpret_cast<const JKRDirectory::Node*>(reader.readBytes(sizeof(JKRDirectory::Node)));
         reader.skip(4); // Skip padding
         dir->mNameOffs = dir->mNode.mAttrAndNameOffs & 0x00FFFFFF;
@@ -148,16 +151,18 @@ void JKRArchive::read(BinaryReader &reader) {
             reader.seek(mHeader.mFileDataOffset + mHeader.mHeaderSize + dir->mNode.mData, std::ios::beg);
             u8* pData = reader.readBytes(dir->mNode.mDataSize, EndianSelect::Little);
             reader.seek(curPos, std::ios::beg);     
-            dir->mData = pData;
+            dir->mData = std::shared_ptr<u8[]>(new u8[dir->mNode.mDataSize]);
+            memcpy(dir->mData.get(), pData, dir->mNode.mDataSize);
+            delete [] pData;
         }
 
         mDirectories.push_back(dir);
     }
     printf("\n");
 
-    for (JKRFolderNode* node : mFolderNodes) {
+    for (auto node : mFolderNodes) {
         for (s32 y = node->mNode.mFirstFileOffs; y < (node->mNode.mFirstFileOffs + node->mNode.mFileCount); y++) {
-            JKRDirectory* childDir = mDirectories[y];
+            auto childDir = mDirectories[y];
             childDir->mParentNode = node;
             node->mChildDirs.push_back(childDir);
         }
@@ -190,7 +195,7 @@ void JKRArchive::write(BinaryWriter &writer, bool reduceStrings) {
 
     writer.seek(dirOffs, std::ios::beg);
 
-    for (JKRFolderNode* node : mFolderNodes) {
+    for (std::shared_ptr<JKRFolderNode> node : mFolderNodes) {
         writer.writeString(node->getShortName());
         writer.write<u32>(node->mNode.mNameOffs);
         writer.write<u16>(nameHash(node->mName));
@@ -214,7 +219,7 @@ void JKRArchive::write(BinaryWriter &writer, bool reduceStrings) {
 
     writer.seek(fileOffs, std::ios::beg);
 
-    for (JKRDirectory* dir : mDirectories) {
+    for (auto dir : mDirectories) {
         writer.write<u16>(dir->mNode.mNodeIdx);
         writer.write<u16>(nameHash(dir->mName));
         writer.write<u32>((dir->mAttr << 24) | dir->mNameOffs);
@@ -245,28 +250,31 @@ void JKRArchive::write(BinaryWriter &writer, bool reduceStrings) {
     writer.write<u8>(mSyncFileIds);
 }
 
-void JKRArchive::writeFileData(BinaryWriter &writer, std::vector<JKRDirectory*> files, u32 *pSize) {
+void JKRArchive::writeFileData(BinaryWriter &writer, std::vector<std::shared_ptr<JKRDirectory>> files, u32 *pSize) {
     u32 startPos = writer.size();
 
-    for (JKRDirectory* dir : files) {
+    for (auto dir : files) {
         if (dir->mAttr & JKRFileAttr_USE_SZS) {
-            dir->mData = (u8*)JKRCompression::encodeSZSFast(dir->mData, dir->mNode.mDataSize, &dir->mNode.mDataSize);
+            auto ptr = JKRCompression::encodeSZSFast(dir->mData.get(), dir->mNode.mDataSize, &dir->mNode.mDataSize);
+            dir->mData = std::shared_ptr<u8[]>(new u8[dir->mNode.mDataSize]);
+            memcpy(dir->mData.get(), ptr, dir->mNode.mDataSize);
+            delete [] ptr;
         }
-        writer.writeBytes(dir->mData, dir->mNode.mDataSize);
+        writer.writeBytes(dir->mData.get(), dir->mNode.mDataSize);
         writer.align32();
     }
     u32 out = writer.size() - startPos;
     *pSize = out;
 }
 
-void JKRArchive::sortNodeAndDirs(JKRFolderNode*pNode) {
-    std::vector<JKRDirectory*> shortcuts;
+void JKRArchive::sortNodeAndDirs(std::shared_ptr<JKRFolderNode>pNode) {
+    std::vector<std::shared_ptr<JKRDirectory>> shortcuts;
     for (s32 i = 0; i < pNode->mChildDirs.size(); i++) {
         if (pNode->mChildDirs[i]->isShortcut())    
             shortcuts.push_back(pNode->mChildDirs[i]);
     }
 
-    for (JKRDirectory* dir : shortcuts) {
+    for (auto dir : shortcuts) {
         pNode->mChildDirs.erase(pNode->mChildDirs.begin() + Util::getVectorIndex(pNode->mChildDirs, dir));
         pNode->mChildDirs.push_back(dir);
     }
@@ -279,7 +287,7 @@ void JKRArchive::sortNodeAndDirs(JKRFolderNode*pNode) {
     for (s32 i = 0; i < pNode->mChildDirs.size(); i++)
         mDirectories.push_back(pNode->mChildDirs[i]);
 
-    for (JKRDirectory* dir : pNode->mChildDirs) {
+    for (auto dir : pNode->mChildDirs) {
         if (dir->isDirectory() && !dir->isShortcut()) {
             sortNodeAndDirs(dir->mFolderNode);
         }
@@ -293,7 +301,7 @@ void JKRArchive::sortNodesAndDirs() {
     if (mSyncFileIds)
         mNextFileIdx = mDirectories.size();
 
-    for (JKRDirectory* dir : mDirectories) {
+    for (auto dir : mDirectories) {
         if (dir->isDirectory())  {
             if (dir->mFolderNode)
                 dir->mNode.mData = Util::getVectorIndex(mFolderNodes, dir->mFolderNode);
@@ -314,7 +322,7 @@ void JKRArchive::sortNodesAndDirs() {
     }
 }
 
-bool JKRArchive::validateName(JKRFolderNode*pNode, const std::string &fileName) {
+bool JKRArchive::validateName(std::shared_ptr<JKRFolderNode>pNode, const std::string &fileName) {
     // for (s32 i = 0; i < mDirectories.size(); i++) {
     //     if (mDirectories[i]->mName.compare(pNode->mName)) {
     //         printf("Folder name already exists!\n");
@@ -325,9 +333,9 @@ bool JKRArchive::validateName(JKRFolderNode*pNode, const std::string &fileName) 
     return true;
 }
 
-void JKRArchive::collectStrings(JKRFolderNode*pNode, StringPool*pPool, bool reduceStrings) {
+void JKRArchive::collectStrings(std::shared_ptr<JKRFolderNode>pNode, StringPool*pPool, bool reduceStrings) {
     if (reduceStrings) {
-        for (JKRDirectory* dir : pNode->mChildDirs) {
+        for (auto dir : pNode->mChildDirs) {
             dir->mNameOffs = pPool->write(dir->mName);
 
             if (dir->isDirectory() && !dir->isShortcut()) { 
@@ -337,7 +345,7 @@ void JKRArchive::collectStrings(JKRFolderNode*pNode, StringPool*pPool, bool redu
         }
     }
     else {
-        for (JKRDirectory* dir : pNode->mChildDirs) {
+        for (auto dir : pNode->mChildDirs) {
             if (dir->isShortcut()) 
                 dir->mNameOffs = pPool->find(dir->mName);
             else 
@@ -365,7 +373,7 @@ void JKRFolderNode::unpack(const std::string &filePath) {
             mChildDirs[i]->mFolderNode->unpack(fullpath);
         }
         else if (mChildDirs[i]->isFile()) {
-            File::writeAllBytes(fullpath, mChildDirs[i]->mData, mChildDirs[i]->mNode.mDataSize);
+            File::writeAllBytes(fullpath, mChildDirs[i]->mData.get(), mChildDirs[i]->mNode.mDataSize);
         }
     }
 }
