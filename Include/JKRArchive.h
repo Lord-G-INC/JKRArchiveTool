@@ -108,7 +108,7 @@ public:
     JKRArchive(u8*, u32);
 
     void unpack(const std::string &);
-    void save(const std::string &, bool);
+    void save(const std::string &, bool, EndianSelect);
     void importFromFolder(const std::string &, JKRFileAttr);
     std::shared_ptr<JKRDirectory> createDir(const std::string &, JKRFileAttr, std::shared_ptr<JKRFolderNode>, std::shared_ptr<JKRFolderNode>);
     std::shared_ptr<JKRDirectory> createFile(const std::string &, std::shared_ptr<JKRFolderNode>, JKRFileAttr);

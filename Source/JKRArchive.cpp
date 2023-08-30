@@ -12,8 +12,8 @@ JKRArchive::JKRArchive(u8*pData, u32 size) {
     read(reader);
 }
 
-void JKRArchive::save(const std::string &filePath, bool reduceStrings) {
-    BinaryWriter writer(filePath, EndianSelect::Big);
+void JKRArchive::save(const std::string &filePath, bool reduceStrings, EndianSelect select = Big) {
+    BinaryWriter writer(filePath, select);
     write(writer, reduceStrings);
 }
 
