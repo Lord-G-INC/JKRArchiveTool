@@ -5,27 +5,35 @@
 #include "..\Include\filesystem.hpp"
 
 
+void printHelp() {
+    printf("usage: JKRArchiveTools.exe [-OPTIONS]\n");
+    printf("<Required>\n");
+    printf("-u/--unpack [*.arc] # unpacks the given archive\n");
+    printf("-p/--pack [*]       # packs the given folder into an archive\n");
+    printf("\n<Packing options>\n");
+    printf("-o/--out [*.arc]    # (optional) the ouput file name\n");
+    printf("-szs                # compresses the output archive with szs compression\n");
+    printf("-szp                # compresses the output archive with szp compression\n");
+    printf("-f/--fast           # increases compression speed at the expense of file size\n");
+    printf("-Os                 # attempts to decrease archive size by removing duplicate strings\n");
+    printf("<File attributes>\n");
+    printf("MRAM                # (default) preload file to main RAM\n");
+    printf("ARAM                # (Gamecube only) preload file to auxiliary RAM\n");
+    printf("DVD                 # load file from DVD\n");
+    printf("<Other>\n");
+    printf("-h/--help           # show usage\n");
+}
+
 int main(int argc, char* argv[]) {  
     u32 bufferSize;
     bool fastComp = false;
 
-    if (!strcasecmp(argv[1], "-h") || !strcasecmp(argv[1], "--help") || argc == 1) {
-        printf("usage: JKRArchiveTools.exe [-OPTIONS]\n");
-        printf("<Required>\n");
-        printf("-u/--unpack [*.arc] # unpacks the given archive\n");
-        printf("-p/--pack [*]       # packs the given folder into an archive\n");
-        printf("\n<Packing options>\n");
-        printf("-o/--out [*.arc]    # (optional) the ouput file name\n");
-        printf("-szs                # compresses the output archive with szs compression\n");
-        printf("-szp                # compresses the output archive with szp compression\n");
-        printf("-f/--fast           # increases compression speed at the expense of file size\n");
-        printf("-Os                 # attempts to decrease archive size by removing duplicate strings\n");
-        printf("<File attributes>\n");
-        printf("MRAM                # (default) preload file to main RAM\n");
-        printf("ARAM                # (Gamecube only) preload file to auxiliary RAM\n");
-        printf("DVD                 # load file from DVD\n");
-        printf("<Other>\n");
-        printf("-h/--help           # show usage\n");
+    if (argc == 1) {
+        printHelp();
+        return 0;
+    }
+    if (!strcasecmp(argv[1], "-h") || !strcasecmp(argv[1], "--help")) {
+        printHelp();
         return 0;
     }
 
