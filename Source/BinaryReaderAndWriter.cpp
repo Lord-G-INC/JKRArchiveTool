@@ -161,9 +161,11 @@ u32 BinaryWriter::size() {
 }
 
 void BinaryWriter::align32() {
-    while ((mStream->tellp() % 32) != 0) {
-        writePadding(0x0, 1);
-    }
+    std::streamoff size = mStream->tellp();
+    auto diff = Util::align32(size) - size;
+    char* buf = new char[diff];
+    mStream->write(buf, diff);
+    delete [] buf;
 }
 
 const u8* BinaryWriter::getBuffer() {
@@ -201,7 +203,5 @@ u32 StringPool::find(const std::string &string) {
 }
 
 void StringPool::align32() {
-    while ((mBuffer.size() % 32) != 0) {
-        mBuffer.push_back(0x0);
-    }
+    mBuffer.resize(Util::align32(mBuffer.size()), 0);
 }

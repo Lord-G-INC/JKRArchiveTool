@@ -37,4 +37,8 @@ namespace Util {
             return -1;
         }
     }
+    template<typename T>
+    T align32(T val) {
+        return (val + 0x1F) & ~0x1F;
+    }
 };
