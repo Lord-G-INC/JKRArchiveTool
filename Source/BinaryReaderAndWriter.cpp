@@ -164,6 +164,7 @@ void BinaryWriter::align32() {
     std::streamoff size = mStream->tellp();
     auto diff = Util::align32(size) - size;
     char* buf = new char[diff];
+    memset(buf, 0, diff);
     mStream->write(buf, diff);
     delete [] buf;
 }
